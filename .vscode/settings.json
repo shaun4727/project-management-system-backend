@@ -1,0 +1,10 @@
+{
+    "editor.formatOnSave": true,
+    "editor.linkedEditing": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "always",
+        "source.fixAll.eslint": "always",
+        "source.organizeImports": "always"
+    }
+}
