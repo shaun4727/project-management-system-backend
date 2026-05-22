@@ -1,11 +1,15 @@
+import { Prisma } from '@prisma/client';
 import AppError from '../../errors/appError';
 import prisma from '../../utils/prisma';
 import { ActivityServices } from '../activity/activity.service';
+
+import { sendEmail } from '../../utils/email'; // Add this import at the top
 
 const createTaskIntoDB = async (payload: any) => {
 	// 1. Verify the associated sprint exists
 	const sprint = await prisma.sprint.findUnique({
 		where: { id: payload.sprintId },
+		include: { project: true }, // Grab the project name for the email!
 	});
 
 	if (!sprint) {
@@ -26,23 +30,43 @@ const createTaskIntoDB = async (payload: any) => {
 						}
 					: undefined,
 		},
-		// Include the assigned users in the response so the frontend can display them!
 		include: {
 			assignees: {
 				select: {
 					id: true,
 					name: true,
-					email: true,
+					email: true, // Crucial: We need the emails now!
 					role: true,
 				},
 			},
 		},
 	});
 
+	// 4. THE MAGIC HOOK: Send notification emails to assignees
+	if (result.assignees && result.assignees.length > 0) {
+		result.assignees.forEach(async (assignee) => {
+			const emailSubject = `New Task Assigned: ${result.title}`;
+			const emailBody = `
+        <div style="font-family: Arial, sans-serif; padding: 20px;">
+          <h2>Hello ${assignee.name},</h2>
+          <p>You have been assigned a new task in the <strong>${sprint.project.title}</strong> project.</p>
+          <div style="background-color: #f4f4f4; padding: 15px; border-radius: 5px;">
+            <h3>${result.title}</h3>
+            <p><strong>Priority:</strong> ${result.priority}</p>
+            <p><strong>Estimate:</strong> ${result.estimateHours || 'Not set'} hours</p>
+            <p>${result.description || 'No description provided.'}</p>
+          </div>
+          <p style="margin-top: 20px;">Please check your dashboard for more details.</p>
+        </div>
+      `;
+
+			// Fire and forget!
+			await sendEmail(assignee.email, emailSubject, emailBody);
+		});
+	}
+
 	return result;
 };
-
-import { Prisma } from '@prisma/client';
 
 const getAllTasksFromDB = async (filters: any, options: any) => {
 	const { searchTerm, sprintId, status, priority } = filters;
