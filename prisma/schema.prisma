@@ -12,6 +12,26 @@ enum Role {
   MEMBER
 }
 
+enum Status {
+  PLANNED
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW_REQUIRED
+  DONE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
 model User {
   id         String   @id @default(uuid())
   name       String
@@ -22,4 +42,59 @@ model User {
   skills     String[] // PostgreSQL string array
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  // Relationships
+  tasks      Task[]   @relation("TaskAssignees") // A user can be assigned to multiple tasks
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  title       String
+  client      String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  budget      Float?
+  status      Status   @default(PLANNED)
+  thumbnail   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  sprints     Sprint[] // A project can have many sprints
+}
+
+model Sprint {
+  id           String   @id @default(uuid())
+  title        String
+  sprintNumber Int
+  startDate    DateTime
+  endDate      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relationships
+  projectId    String
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks        Task[]   // A sprint can have many tasks
+
+  // Ensures sprint numbers (1, 2, 3...) are unique per project
+  @@unique([projectId, sprintNumber]) 
+}
+
+model Task {
+  id            String     @id @default(uuid())
+  title         String
+  description   String?
+  estimateHours Float?
+  priority      Priority   @default(MEDIUM)
+  status        TaskStatus @default(TODO)
+  dueDate       DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  
+  // Relationships
+  sprintId      String
+  sprint        Sprint     @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+  assignees     User[]     @relation("TaskAssignees") // A task can have multiple assignees
 }

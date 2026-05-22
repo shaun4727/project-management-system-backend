@@ -3,6 +3,7 @@ import cors from 'cors';
 import express, { type Application, type Request, type Response } from 'express';
 import globalErrorHandler from './app/errors/globalErrorHandler';
 import notFound from './app/middlewares/notFound';
+import router from './app/routes';
 
 const app: Application = express();
 
@@ -12,7 +13,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // 2. Application Routes
-// app.use('/api/v1', router);
+app.use('/api/v1', router);
 
 // 3. Health Check Route
 app.get('/', (req: Request, res: Response) => {

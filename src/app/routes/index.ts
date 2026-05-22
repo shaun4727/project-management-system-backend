@@ -1,6 +1,8 @@
 // src/app/routes/index.ts
 import { Router } from 'express';
 import { AuthRoutes } from '../modules/auth/auth.routes';
+import { ProjectRoutes } from '../modules/project/project.route';
+import { SprintRoutes } from '../modules/sprint/sprint.route';
 import { UserRoutes } from '../modules/user/user.route';
 // import { ProjectRoutes } from '../modules/project/project.route';
 
@@ -14,6 +16,14 @@ const moduleRoutes = [
 	{
 		path: '/users',
 		route: UserRoutes,
+	},
+	{
+		path: '/projects',
+		route: ProjectRoutes,
+	},
+	{
+		path: '/sprints',
+		route: SprintRoutes,
 	},
 ];
 
