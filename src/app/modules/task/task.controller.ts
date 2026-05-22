@@ -29,7 +29,7 @@ const getAllTasks = catchAsync(async (req: Request, res: Response) => {
 });
 const updateTask = catchAsync(async (req: Request, res: Response) => {
 	const { id } = req.params;
-	const result = await TaskServices.updateTaskInDB(id as string, req.body);
+	const result = await TaskServices.updateTaskInDB(id as string, req.user.id, req.body);
 
 	res.status(200).json({
 		success: true,

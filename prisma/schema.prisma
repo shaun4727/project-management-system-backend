@@ -45,7 +45,7 @@ model User {
 
   // Relationships
   tasks      Task[]   @relation("TaskAssignees") // A user can be assigned to multiple tasks
-
+  activities ActivityLog[]
   comments   Comment[]
 }
 
@@ -64,6 +64,7 @@ model Project {
 
   // Relationships
   sprints     Sprint[] // A project can have many sprints
+  activities ActivityLog[]
 }
 
 model Sprint {
@@ -100,6 +101,7 @@ model Task {
   sprint        Sprint     @relation(fields: [sprintId], references: [id], onDelete: Cascade)
   assignees     User[]     @relation("TaskAssignees") // A task can have multiple assignees
   comments   Comment[]
+  attachments   Attachment[]
 }
 
 model Comment {
@@ -114,4 +116,29 @@ model Comment {
   
   authorId  String
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Attachment {
+  id        String   @id @default(uuid())
+  fileName  String
+  fileUrl   String
+  createdAt DateTime @default(now())
+
+  // Relationships
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  action    String   // e.g., "TASK_STATUS_CHANGED", "TASK_CREATED"
+  details   String   // e.g., "Changed status from TODO to IN_PROGRESS"
+  createdAt DateTime @default(now())
+
+  // Relationships
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

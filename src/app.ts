@@ -1,6 +1,7 @@
 // src/app.ts
 import cors from 'cors';
 import express, { type Application, type Request, type Response } from 'express';
+import path from 'path';
 import globalErrorHandler from './app/errors/globalErrorHandler';
 import notFound from './app/middlewares/notFound';
 import router from './app/routes';
@@ -22,6 +23,8 @@ app.get('/', (req: Request, res: Response) => {
 		message: 'Welcome to the MPMS API!',
 	});
 });
+
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // 4. Global Error Handler
 app.use(globalErrorHandler);

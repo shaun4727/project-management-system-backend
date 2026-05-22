@@ -1,5 +1,6 @@
 import AppError from '../../errors/appError';
 import prisma from '../../utils/prisma';
+import { ActivityServices } from '../activity/activity.service';
 
 const createTaskIntoDB = async (payload: any) => {
 	// 1. Verify the associated sprint exists
@@ -102,43 +103,6 @@ const getAllTasksFromDB = async (filters: any, options: any) => {
 	};
 };
 
-const updateTaskInDB = async (id: string, payload: any) => {
-	// 1. Verify the task exists
-	const existingTask = await prisma.task.findUnique({
-		where: { id },
-	});
-
-	if (!existingTask) {
-		throw new AppError(404, 'Task not found');
-	}
-
-	// 2. Separate assigneeIds from the rest of the payload
-	const { assigneeIds, ...taskData } = payload;
-
-	// 3. Update the task
-	const result = await prisma.task.update({
-		where: { id },
-		data: {
-			...taskData,
-			...(assigneeIds && {
-				assignees: {
-					set: assigneeIds.map((assigneeId: string) => ({ id: assigneeId })),
-				},
-			}),
-		},
-		include: {
-			assignees: {
-				select: {
-					id: true,
-					name: true,
-				},
-			},
-		},
-	});
-
-	return result;
-};
-
 const deleteTaskFromDB = async (id: string) => {
 	// 1. Verify the task exists
 	const existingTask = await prisma.task.findUnique({
@@ -153,6 +117,33 @@ const deleteTaskFromDB = async (id: string) => {
 	const result = await prisma.task.delete({
 		where: { id },
 	});
+
+	return result;
+};
+
+// Inside your existing updateTaskInDB function (you'll need to pass userId from the controller):
+const updateTaskInDB = async (id: string, userId: string, payload: any) => {
+	const existingTask = await prisma.task.findUnique({
+		where: { id },
+		include: { sprint: true }, // Need the sprint to get the projectId!
+	});
+
+	if (!existingTask) throw new AppError(404, 'Task not found');
+
+	const result = await prisma.task.update({
+		where: { id },
+		data: payload,
+	});
+
+	// THE MAGIC HOOK: Check if the status changed, and log it!
+	if (payload.status && payload.status !== existingTask.status) {
+		await ActivityServices.logActivity(
+			existingTask.sprint.projectId,
+			userId,
+			'STATUS_CHANGED',
+			`Task "${existingTask.title}" moved from ${existingTask.status} to ${payload.status}`,
+		);
+	}
 
 	return result;
 };

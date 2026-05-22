@@ -1,6 +1,9 @@
 // src/app/routes/index.ts
 import { Router } from 'express';
+import { ActivityRoutes } from '../modules/activity/activity.routes';
+import { AttachmentRoutes } from '../modules/attachment/attachment.routes';
 import { AuthRoutes } from '../modules/auth/auth.routes';
+import { CommentRoutes } from '../modules/comment/comment.routes';
 import { ProjectRoutes } from '../modules/project/project.route';
 import { SprintRoutes } from '../modules/sprint/sprint.route';
 import { TaskRoutes } from '../modules/task/task.route';
@@ -29,6 +32,18 @@ const moduleRoutes = [
 	{
 		path: '/tasks',
 		route: TaskRoutes,
+	},
+	{
+		path: '/comments',
+		route: CommentRoutes,
+	},
+	{
+		path: '/attachments',
+		route: AttachmentRoutes,
+	},
+	{
+		path: '/activities',
+		route: ActivityRoutes,
 	},
 ];
 
