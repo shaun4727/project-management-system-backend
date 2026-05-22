@@ -45,6 +45,8 @@ model User {
 
   // Relationships
   tasks      Task[]   @relation("TaskAssignees") // A user can be assigned to multiple tasks
+
+  comments   Comment[]
 }
 
 model Project {
@@ -97,4 +99,19 @@ model Task {
   sprintId      String
   sprint        Sprint     @relation(fields: [sprintId], references: [id], onDelete: Cascade)
   assignees     User[]     @relation("TaskAssignees") // A task can have multiple assignees
+  comments   Comment[]
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }

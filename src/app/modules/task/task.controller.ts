@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import catchAsync from '../../utils/catchAsync';
+import pick from '../../utils/pick';
 import { TaskServices } from './task.service';
 
 const createTask = catchAsync(async (req: Request, res: Response) => {
@@ -13,16 +14,19 @@ const createTask = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllTasks = catchAsync(async (req: Request, res: Response) => {
-	const sprintId = req.query.sprintId as string | undefined;
-	const result = await TaskServices.getAllTasksFromDB(sprintId);
+	// Extract filters and pagination options securely
+	const filters = pick(req.query, ['searchTerm', 'sprintId', 'status', 'priority']);
+	const options = pick(req.query, ['page', 'limit', 'sortBy', 'sortOrder']);
+
+	const result = await TaskServices.getAllTasksFromDB(filters, options);
 
 	res.status(200).json({
 		success: true,
 		message: 'Tasks retrieved successfully',
-		data: result,
+		meta: result.meta, // Now returning pagination metadata!
+		data: result.data,
 	});
 });
-
 const updateTask = catchAsync(async (req: Request, res: Response) => {
 	const { id } = req.params;
 	const result = await TaskServices.updateTaskInDB(id as string, req.body);

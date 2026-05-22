@@ -41,18 +41,65 @@ const createTaskIntoDB = async (payload: any) => {
 	return result;
 };
 
-const getAllTasksFromDB = async (sprintId?: string) => {
+import { Prisma } from '@prisma/client';
+
+const getAllTasksFromDB = async (filters: any, options: any) => {
+	const { searchTerm, sprintId, status, priority } = filters;
+	const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = options;
+
+	// Calculate pagination math
+	const skip = (Number(page) - 1) * Number(limit);
+	const take = Number(limit);
+
+	// Build the dynamic Prisma query
+	const andConditions: Prisma.TaskWhereInput[] = [];
+
+	// 1. Search Term (looks for text in title or description)
+	if (searchTerm) {
+		andConditions.push({
+			OR: [
+				{ title: { contains: searchTerm, mode: 'insensitive' } },
+				{ description: { contains: searchTerm, mode: 'insensitive' } },
+			],
+		});
+	}
+
+	// 2. Exact Filters
+	if (sprintId) andConditions.push({ sprintId });
+	if (status) andConditions.push({ status });
+	if (priority) andConditions.push({ priority });
+
+	// Combine conditions
+	const whereConditions: Prisma.TaskWhereInput = andConditions.length > 0 ? { AND: andConditions } : {};
+
+	// Execute the query
 	const result = await prisma.task.findMany({
-		where: sprintId ? { sprintId } : undefined,
+		where: whereConditions,
+		skip,
+		take,
+		orderBy: {
+			[sortBy]: sortOrder,
+		},
 		include: {
 			assignees: {
 				select: { id: true, name: true },
 			},
 		},
-		orderBy: { createdAt: 'desc' },
 	});
 
-	return result;
+	// Count total documents for frontend pagination math
+	const total = await prisma.task.count({
+		where: whereConditions,
+	});
+
+	return {
+		meta: {
+			page: Number(page),
+			limit: Number(limit),
+			total,
+		},
+		data: result,
+	};
 };
 
 const updateTaskInDB = async (id: string, payload: any) => {
