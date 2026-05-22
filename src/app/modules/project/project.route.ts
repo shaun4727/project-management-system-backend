@@ -18,4 +18,17 @@ router.post(
 // ALL authenticated users can VIEW projects
 router.get('/', auth(Role.ADMIN, Role.MANAGER, Role.MEMBER), ProjectControllers.getAllProjects);
 
+router.get('/:id', auth(Role.ADMIN, Role.MANAGER, Role.MEMBER), ProjectControllers.getSingleProject);
+
+router.patch(
+	'/:id',
+	auth(Role.ADMIN, Role.MANAGER), // Restrict to Admin/Manager
+	validateRequest(ProjectValidation.updateProjectValidationSchema),
+	ProjectControllers.updateProject,
+);
+
+router.delete('/:id', auth(Role.ADMIN, Role.MANAGER), ProjectControllers.deleteProject);
+
+router.get('/:id/analytics', auth(Role.ADMIN, Role.MANAGER, Role.MEMBER), ProjectControllers.getProjectAnalytics);
+
 export const ProjectRoutes = router;

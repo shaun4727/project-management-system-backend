@@ -11,6 +11,31 @@ const createUser = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
+const getMe = catchAsync(async (req: Request, res: Response) => {
+	// req.user is injected by the auth middleware
+	const userId = req.user.id;
+
+	const result = await UserServices.getMeFromDB(userId);
+
+	res.status(200).json({
+		success: true,
+		message: 'User profile retrieved successfully',
+		data: result,
+	});
+});
+
+const getAllUsers = catchAsync(async (req: Request, res: Response) => {
+	const result = await UserServices.getAllUsersFromDB();
+
+	res.status(200).json({
+		success: true,
+		message: 'Users retrieved successfully',
+		data: result,
+	});
+});
+
 export const UserControllers = {
 	createUser,
+	getMe,
+	getAllUsers,
 };

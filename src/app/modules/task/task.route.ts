@@ -16,12 +16,17 @@ router.post(
 
 router.get('/', auth(Role.ADMIN, Role.MANAGER, Role.MEMBER), TaskControllers.getAllTasks);
 
-// Add this before the export statement
 router.patch(
 	'/:id',
 	auth(Role.ADMIN, Role.MANAGER, Role.MEMBER),
 	validateRequest(TaskValidation.updateTaskValidationSchema),
 	TaskControllers.updateTask,
+);
+
+router.delete(
+	'/:id',
+	auth(Role.ADMIN, Role.MANAGER), // Members cannot delete
+	TaskControllers.deleteTask,
 );
 
 export const TaskRoutes = router;

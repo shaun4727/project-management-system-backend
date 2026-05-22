@@ -16,4 +16,13 @@ router.post(
 
 router.get('/', auth(Role.ADMIN, Role.MANAGER, Role.MEMBER), SprintControllers.getAllSprints);
 
+router.patch(
+	'/:id',
+	auth(Role.ADMIN, Role.MANAGER),
+	validateRequest(SprintValidation.updateSprintValidationSchema),
+	SprintControllers.updateSprint,
+);
+
+router.delete('/:id', auth(Role.ADMIN, Role.MANAGER), SprintControllers.deleteSprint);
+
 export const SprintRoutes = router;

@@ -55,7 +55,6 @@ const getAllTasksFromDB = async (sprintId?: string) => {
 	return result;
 };
 
-// Add this below your existing getAllTasksFromDB function
 const updateTaskInDB = async (id: string, payload: any) => {
 	// 1. Verify the task exists
 	const existingTask = await prisma.task.findUnique({
@@ -93,9 +92,28 @@ const updateTaskInDB = async (id: string, payload: any) => {
 	return result;
 };
 
-// Update the export to include the new service
+const deleteTaskFromDB = async (id: string) => {
+	// 1. Verify the task exists
+	const existingTask = await prisma.task.findUnique({
+		where: { id },
+	});
+
+	if (!existingTask) {
+		throw new AppError(404, 'Task not found');
+	}
+
+	// 2. Delete the task
+	const result = await prisma.task.delete({
+		where: { id },
+	});
+
+	return result;
+};
+
+// Update the export block
 export const TaskServices = {
 	createTaskIntoDB,
 	getAllTasksFromDB,
-	updateTaskInDB, // <-- Added here
+	updateTaskInDB,
+	deleteTaskFromDB,
 };

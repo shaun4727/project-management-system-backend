@@ -30,7 +30,43 @@ const getAllSprintsFromDB = async (projectId?: string): Promise<Sprint[]> => {
 	return result;
 };
 
+const updateSprintInDB = async (id: string, payload: any) => {
+	const existingSprint = await prisma.sprint.findUnique({
+		where: { id },
+	});
+
+	if (!existingSprint) {
+		throw new AppError(404, 'Sprint not found');
+	}
+
+	const result = await prisma.sprint.update({
+		where: { id },
+		data: payload,
+	});
+
+	return result;
+};
+
+const deleteSprintFromDB = async (id: string) => {
+	const existingSprint = await prisma.sprint.findUnique({
+		where: { id },
+	});
+
+	if (!existingSprint) {
+		throw new AppError(404, 'Sprint not found');
+	}
+
+	// Deleting a sprint will cascade and delete all tasks inside it
+	const result = await prisma.sprint.delete({
+		where: { id },
+	});
+
+	return result;
+};
+
 export const SprintServices = {
 	createSprintIntoDB,
 	getAllSprintsFromDB,
+	updateSprintInDB,
+	deleteSprintFromDB,
 };

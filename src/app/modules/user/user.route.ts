@@ -9,9 +9,13 @@ const router = Router();
 
 router.post(
 	'/',
-	auth(Role.ADMIN, Role.MANAGER), // Only Admins and Managers can access
+	auth(Role.ADMIN, Role.MANAGER),
 	validateRequest(UserValidation.createUserValidationSchema),
 	UserControllers.createUser,
 );
+
+router.get('/me', auth(Role.ADMIN, Role.MANAGER, Role.MEMBER), UserControllers.getMe);
+
+router.get('/', auth(Role.ADMIN, Role.MANAGER, Role.MEMBER), UserControllers.getAllUsers);
 
 export const UserRoutes = router;

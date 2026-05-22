@@ -23,7 +23,6 @@ const getAllTasks = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-// Add this below your existing getAllTasks function
 const updateTask = catchAsync(async (req: Request, res: Response) => {
 	const { id } = req.params;
 	const result = await TaskServices.updateTaskInDB(id as string, req.body);
@@ -35,9 +34,21 @@ const updateTask = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-// Update the export to include the new controller
+const deleteTask = catchAsync(async (req: Request, res: Response) => {
+	const { id } = req.params;
+	await TaskServices.deleteTaskFromDB(id as string);
+
+	res.status(200).json({
+		success: true,
+		message: 'Task deleted successfully',
+		data: null, // It is standard practice to return null data on a successful delete
+	});
+});
+
+// Update the export block
 export const TaskControllers = {
 	createTask,
 	getAllTasks,
-	updateTask, // <-- Added here
+	updateTask,
+	deleteTask,
 };

@@ -14,7 +14,6 @@ const createTaskValidationSchema = z.object({
 	}),
 });
 
-// Add this below your existing createTaskValidationSchema
 const updateTaskValidationSchema = z.object({
 	body: z.object({
 		title: z.string().optional(),
@@ -28,7 +27,6 @@ const updateTaskValidationSchema = z.object({
 	}),
 });
 
-// Update the export to include the new schema
 export const TaskValidation = {
 	createTaskValidationSchema,
 	updateTaskValidationSchema,
