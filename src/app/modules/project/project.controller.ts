@@ -13,15 +13,19 @@ const createProject = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllProjects = catchAsync(async (req: Request, res: Response) => {
-	const result = await ProjectServices.getAllProjectsFromDB();
+	// Extract pagination and filters from the query string
+	const page = parseInt(req.query.page as string) || 1;
+	const limit = parseInt(req.query.limit as string) || 6;
+	const status = req.query.status as string;
+
+	const result = await ProjectServices.getAllProjectsFromDB(page, limit, status);
 
 	res.status(200).json({
 		success: true,
 		message: 'Projects retrieved successfully',
-		data: result,
+		data: result, // This now contains both { projects, meta }
 	});
 });
-
 const getSingleProject = catchAsync(async (req: Request, res: Response) => {
 	const { id } = req.params;
 	const result = await ProjectServices.getSingleProjectFromDB(id as string);
@@ -69,6 +73,19 @@ const getProjectAnalytics = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
+const exportTasksCSV = catchAsync(async (req: Request, res: Response) => {
+	const { id } = req.params;
+
+	const result = await ProjectServices.exportProjectTasksToCSV(id as string);
+
+	// Set the specific headers required for a file download
+	res.setHeader('Content-Type', 'text/csv');
+	res.setHeader('Content-Disposition', `attachment; filename=${result.projectName}_tasks.csv`);
+
+	// Send the raw CSV string directly (not wrapped in a JSON object!)
+	res.status(200).send(result.csvString);
+});
+
 export const ProjectControllers = {
 	createProject,
 	getAllProjects,
@@ -76,4 +93,5 @@ export const ProjectControllers = {
 	updateProject,
 	deleteProject,
 	getProjectAnalytics,
+	exportTasksCSV,
 };

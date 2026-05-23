@@ -29,4 +29,11 @@ router.delete(
 	TaskControllers.deleteTask,
 );
 
+router.post(
+	'/:id/time',
+	auth(Role.ADMIN, Role.MANAGER, Role.MEMBER),
+	validateRequest(TaskValidation.logTimeValidationSchema),
+	TaskControllers.logTime,
+);
+
 export const TaskRoutes = router;

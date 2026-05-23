@@ -145,21 +145,23 @@ const deleteTaskFromDB = async (id: string) => {
 	return result;
 };
 
-// Inside your existing updateTaskInDB function (you'll need to pass userId from the controller):
-const updateTaskInDB = async (id: string, userId: string, payload: any) => {
+const updateTaskInDB = async (id: string, userId: string, userRole: string, payload: any) => {
 	const existingTask = await prisma.task.findUnique({
 		where: { id },
-		include: { sprint: true }, // Need the sprint to get the projectId!
+		include: { sprint: true },
 	});
 
 	if (!existingTask) throw new AppError(404, 'Task not found');
+
+	if (existingTask.status === 'REVIEW_REQUIRED' && payload.status === 'DONE' && userRole === 'MEMBER') {
+		throw new AppError(403, 'Only Managers or Admins can approve a task from Review Required to Done.');
+	}
 
 	const result = await prisma.task.update({
 		where: { id },
 		data: payload,
 	});
 
-	// THE MAGIC HOOK: Check if the status changed, and log it!
 	if (payload.status && payload.status !== existingTask.status) {
 		await ActivityServices.logActivity(
 			existingTask.sprint.projectId,
@@ -172,8 +174,39 @@ const updateTaskInDB = async (id: string, userId: string, payload: any) => {
 	return result;
 };
 
-// Update the export block
+// Add this below your existing task functions
+const logTimeIntoDB = async (
+	taskId: string,
+	userId: string,
+	payload: { hoursLogged: number; description?: string },
+) => {
+	// 1. Verify task exists
+	const task = await prisma.task.findUnique({
+		where: { id: taskId },
+	});
+
+	if (!task) {
+		throw new AppError(404, 'Task not found');
+	}
+
+	// 2. Create the time log
+	const result = await prisma.timeLog.create({
+		data: {
+			taskId,
+			userId,
+			hoursLogged: payload.hoursLogged,
+			description: payload.description,
+		},
+		include: {
+			user: { select: { name: true } }, // Return the user's name for the frontend
+		},
+	});
+
+	return result;
+};
+
 export const TaskServices = {
+	logTimeIntoDB,
 	createTaskIntoDB,
 	getAllTasksFromDB,
 	updateTaskInDB,

@@ -31,4 +31,10 @@ router.delete('/:id', auth(Role.ADMIN, Role.MANAGER), ProjectControllers.deleteP
 
 router.get('/:id/analytics', auth(Role.ADMIN, Role.MANAGER, Role.MEMBER), ProjectControllers.getProjectAnalytics);
 
+router.get(
+	'/:id/export/tasks',
+	auth(Role.ADMIN, Role.MANAGER), // Restrict exports to management
+	ProjectControllers.exportTasksCSV,
+);
+
 export const ProjectRoutes = router;

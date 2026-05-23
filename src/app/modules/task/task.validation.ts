@@ -27,7 +27,15 @@ const updateTaskValidationSchema = z.object({
 	}),
 });
 
+const logTimeValidationSchema = z.object({
+	body: z.object({
+		hoursLogged: z.number({ message: 'Hours logged is required' }).positive('Hours must be greater than 0'),
+		description: z.string().optional(),
+	}),
+});
+
 export const TaskValidation = {
+	logTimeValidationSchema,
 	createTaskValidationSchema,
 	updateTaskValidationSchema,
 };

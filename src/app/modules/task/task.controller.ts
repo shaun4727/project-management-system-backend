@@ -27,9 +27,14 @@ const getAllTasks = catchAsync(async (req: Request, res: Response) => {
 		data: result.data,
 	});
 });
+
 const updateTask = catchAsync(async (req: Request, res: Response) => {
 	const { id } = req.params;
-	const result = await TaskServices.updateTaskInDB(id as string, req.user.id, req.body);
+
+	const userId = req.user.id;
+	const userRole = req.user.role;
+
+	const result = await TaskServices.updateTaskInDB(id as string, userId, userRole, req.body);
 
 	res.status(200).json({
 		success: true,
@@ -49,8 +54,22 @@ const deleteTask = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
-// Update the export block
+// Add this below your existing controllers
+const logTime = catchAsync(async (req: Request, res: Response) => {
+	const { id: taskId } = req.params;
+	const userId = req.user.id; // From your auth middleware
+
+	const result = await TaskServices.logTimeIntoDB(taskId as string, userId, req.body);
+
+	res.status(201).json({
+		success: true,
+		message: 'Time logged successfully',
+		data: result,
+	});
+});
+
 export const TaskControllers = {
+	logTime,
 	createTask,
 	getAllTasks,
 	updateTask,

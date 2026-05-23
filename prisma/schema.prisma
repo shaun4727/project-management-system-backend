@@ -47,6 +47,7 @@ model User {
   tasks      Task[]   @relation("TaskAssignees") // A user can be assigned to multiple tasks
   activities ActivityLog[]
   comments   Comment[]
+  timeLogs    TimeLog[]
 }
 
 model Project {
@@ -102,6 +103,7 @@ model Task {
   assignees     User[]     @relation("TaskAssignees") // A task can have multiple assignees
   comments   Comment[]
   attachments   Attachment[]
+  timeLogs    TimeLog[]
 }
 
 model Comment {
@@ -141,4 +143,18 @@ model ActivityLog {
   
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TimeLog {
+  id          String   @id @default(uuid())
+  hoursLogged Float
+  description String?  // Optional: what did they work on?
+  createdAt   DateTime @default(now())
+
+  // Relationships
+  taskId      String
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

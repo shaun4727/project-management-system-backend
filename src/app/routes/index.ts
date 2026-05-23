@@ -4,6 +4,7 @@ import { ActivityRoutes } from '../modules/activity/activity.routes';
 import { AttachmentRoutes } from '../modules/attachment/attachment.routes';
 import { AuthRoutes } from '../modules/auth/auth.routes';
 import { CommentRoutes } from '../modules/comment/comment.routes';
+import { DashboardRoutes } from '../modules/dashboard/dashboard.route';
 import { ProjectRoutes } from '../modules/project/project.route';
 import { SprintRoutes } from '../modules/sprint/sprint.route';
 import { TaskRoutes } from '../modules/task/task.route';
@@ -44,6 +45,10 @@ const moduleRoutes = [
 	{
 		path: '/activities',
 		route: ActivityRoutes,
+	},
+	{
+		path: '/summary',
+		route: DashboardRoutes,
 	},
 ];
 
