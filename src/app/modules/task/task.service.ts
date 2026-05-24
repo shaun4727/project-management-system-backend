@@ -69,7 +69,8 @@ const createTaskIntoDB = async (payload: any) => {
 };
 
 const getAllTasksFromDB = async (filters: any, options: any) => {
-	const { searchTerm, sprintId, status, priority } = filters;
+	// 1. Added projectId and assigneeId to the destructured filters
+	const { searchTerm, sprintId, status, priority, projectId, assigneeId } = filters;
 	const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = options;
 
 	// Calculate pagination math
@@ -79,7 +80,7 @@ const getAllTasksFromDB = async (filters: any, options: any) => {
 	// Build the dynamic Prisma query
 	const andConditions: Prisma.TaskWhereInput[] = [];
 
-	// 1. Search Term (looks for text in title or description)
+	// Search Term (looks for text in title or description)
 	if (searchTerm) {
 		andConditions.push({
 			OR: [
@@ -89,10 +90,32 @@ const getAllTasksFromDB = async (filters: any, options: any) => {
 		});
 	}
 
-	// 2. Exact Filters
+	// Exact Filters
 	if (sprintId) andConditions.push({ sprintId });
 	if (status) andConditions.push({ status });
 	if (priority) andConditions.push({ priority });
+
+	// --- NEW: Project Filter ---
+	// Because Tasks don't have a direct projectId, we filter by the Sprint's projectId
+	if (projectId) {
+		andConditions.push({
+			sprint: {
+				projectId: projectId,
+			},
+		});
+	}
+
+	// --- NEW: Assignee Filter ---
+	// Because Assignees is a Many-to-Many array, we use the "some" operator
+	if (assigneeId) {
+		andConditions.push({
+			assignees: {
+				some: {
+					id: assigneeId,
+				},
+			},
+		});
+	}
 
 	// Combine conditions
 	const whereConditions: Prisma.TaskWhereInput = andConditions.length > 0 ? { AND: andConditions } : {};
@@ -108,6 +131,13 @@ const getAllTasksFromDB = async (filters: any, options: any) => {
 		include: {
 			assignees: {
 				select: { id: true, name: true },
+			},
+			// Tip: Ensure you include the sprint (and its project) so your
+			// frontend table can display the Sprint and Project names!
+			sprint: {
+				include: {
+					project: true,
+				},
 			},
 		},
 	});

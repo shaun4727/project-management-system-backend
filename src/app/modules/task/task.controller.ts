@@ -15,7 +15,7 @@ const createTask = catchAsync(async (req: Request, res: Response) => {
 
 const getAllTasks = catchAsync(async (req: Request, res: Response) => {
 	// Extract filters and pagination options securely
-	const filters = pick(req.query, ['searchTerm', 'sprintId', 'status', 'priority']);
+	const filters = pick(req.query, ['searchTerm', 'sprintId', 'status', 'priority', 'projectId', 'assigneeId']);
 	const options = pick(req.query, ['page', 'limit', 'sortBy', 'sortOrder']);
 
 	const result = await TaskServices.getAllTasksFromDB(filters, options);
