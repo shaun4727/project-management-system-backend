@@ -146,6 +146,7 @@ const deleteTaskFromDB = async (id: string) => {
 };
 
 const updateTaskInDB = async (id: string, userId: string, userRole: string, payload: any) => {
+	// 1. Find the existing task
 	const existingTask = await prisma.task.findUnique({
 		where: { id },
 		include: { sprint: true },
@@ -153,22 +154,61 @@ const updateTaskInDB = async (id: string, userId: string, userRole: string, payl
 
 	if (!existingTask) throw new AppError(404, 'Task not found');
 
+	// 2. Enforce Role-Based Access Control (RBAC)
 	if (existingTask.status === 'REVIEW_REQUIRED' && payload.status === 'DONE' && userRole === 'MEMBER') {
 		throw new AppError(403, 'Only Managers or Admins can approve a task from Review Required to Done.');
 	}
 
+	// 3. Destructure relational fields (Note: projectId is removed because it's not on the Task model)
+	const { sprintId, assigneeIds, projectId, ...taskData } = payload;
+
+	// 4. Prepare the clean Prisma update object
+	const updateData: any = {
+		...taskData,
+	};
+
+	// Handle Sprint relation
+	if (sprintId) {
+		updateData.sprint = { connect: { id: sprintId } };
+	} else if (sprintId === null) {
+		updateData.sprint = { disconnect: true };
+	}
+
+	// Handle Assignees
+	if (assigneeIds && Array.isArray(assigneeIds)) {
+		updateData.assignees = {
+			set: assigneeIds.map((assigneeId: string) => ({ id: assigneeId })),
+		};
+	}
+
+	// 5. Execute the update
 	const result = await prisma.task.update({
 		where: { id },
-		data: payload,
+		data: updateData,
+		// Include ONLY relations that actually exist on the Task model
+		include: {
+			assignees: {
+				select: { id: true, name: true, email: true, role: true },
+			},
+			sprint: true, // Include sprint so we can access its projectId for the logger below
+		},
 	});
 
+	// 6. Activity Logging
 	if (payload.status && payload.status !== existingTask.status) {
-		await ActivityServices.logActivity(
-			existingTask.sprint.projectId,
-			userId,
-			'STATUS_CHANGED',
-			`Task "${existingTask.title}" moved from ${existingTask.status} to ${payload.status}`,
-		);
+		// Because we included 'sprint: true' in the update result above,
+		// we can safely pull the projectId from the newly updated sprint relation.
+		// If the task has no sprint, it falls back to the existing task's sprint.
+		const targetProjectId = result.sprint?.projectId || existingTask.sprint?.projectId;
+
+		if (targetProjectId) {
+			await ActivityServices.logActivity(
+				targetProjectId,
+				userId,
+				'STATUS_CHANGED',
+				`Task "${existingTask.title}" moved from ${existingTask.status} to ${payload.status}`,
+			);
+		}
 	}
 
 	return result;
