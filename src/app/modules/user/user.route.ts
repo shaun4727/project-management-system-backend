@@ -18,4 +18,6 @@ router.get('/me', auth(Role.ADMIN, Role.MANAGER, Role.MEMBER), UserControllers.g
 
 router.get('/', auth(Role.ADMIN, Role.MANAGER, Role.MEMBER), UserControllers.getAllUsers);
 
+router.patch('/:id', auth('ADMIN'), UserControllers.updateUser);
+
 export const UserRoutes = router;

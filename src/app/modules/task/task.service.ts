@@ -292,6 +292,17 @@ const getSingleTaskFromDB = async (id: string) => {
 					project: true, // Brings in the project data via the sprint
 				},
 			},
+			attachments: {
+				select: {
+					id: true,
+					fileName: true,
+					fileUrl: true,
+					createdAt: true,
+				},
+				orderBy: {
+					createdAt: 'desc', // Orders attachments so the newest ones appear first
+				},
+			},
 		},
 	});
 

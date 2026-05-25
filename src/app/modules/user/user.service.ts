@@ -91,9 +91,26 @@ const getAllUsersFromDB = async () => {
 	return result;
 };
 
+const updateUser = async (id: string, payload: any) => {
+	const result = await prisma.user.update({
+		where: { id },
+		data: payload, // Payload will now contain { skills: ["React", "Node"] }
+		select: {
+			id: true,
+			name: true,
+			email: true,
+			role: true,
+			skills: true, // FIXED: Changed from 'skill' to 'skills'
+			department: true,
+		},
+	});
+	return result;
+};
+
 // Update your export block
 export const UserServices = {
 	createUserIntoDB,
 	getMeFromDB,
 	getAllUsersFromDB,
+	updateUser,
 };
