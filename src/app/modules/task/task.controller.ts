@@ -68,10 +68,35 @@ const logTime = catchAsync(async (req: Request, res: Response) => {
 	});
 });
 
+const getSingleTask = catchAsync(async (req: Request, res: Response) => {
+	const { id } = req.params;
+
+	const result = await TaskServices.getSingleTaskFromDB(id as string);
+
+	res.status(200).json({
+		success: true,
+		message: 'Task fetched successfully',
+		data: result,
+	});
+});
+
+const getTimeLogs = catchAsync(async (req: Request, res: Response) => {
+	const { id } = req.params;
+	const result = await TaskServices.getTimeLogsForTask(id as string);
+
+	res.status(200).json({
+		success: true,
+		message: 'Time logs retrieved successfully',
+		data: result,
+	});
+});
+
 export const TaskControllers = {
 	logTime,
 	createTask,
 	getAllTasks,
 	updateTask,
 	deleteTask,
+	getSingleTask,
+	getTimeLogs,
 };

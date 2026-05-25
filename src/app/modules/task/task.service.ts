@@ -275,10 +275,54 @@ const logTimeIntoDB = async (
 	return result;
 };
 
+const getSingleTaskFromDB = async (id: string) => {
+	const result = await prisma.task.findUnique({
+		where: { id },
+		include: {
+			assignees: {
+				select: {
+					id: true,
+					name: true,
+					email: true,
+					role: true,
+				},
+			},
+			sprint: {
+				include: {
+					project: true, // Brings in the project data via the sprint
+				},
+			},
+		},
+	});
+
+	if (!result) {
+		throw new AppError(404, 'Task not found');
+	}
+
+	return result;
+};
+
+const getTimeLogsForTask = async (taskId: string) => {
+	const logs = await prisma.timeLog.findMany({
+		where: { taskId },
+		include: {
+			user: {
+				select: { id: true, name: true },
+			},
+		},
+		orderBy: {
+			createdAt: 'desc',
+		},
+	});
+	return logs;
+};
+
 export const TaskServices = {
 	logTimeIntoDB,
 	createTaskIntoDB,
 	getAllTasksFromDB,
 	updateTaskInDB,
 	deleteTaskFromDB,
+	getSingleTaskFromDB,
+	getTimeLogsForTask,
 };

@@ -1,35 +1,28 @@
 import AppError from '../../errors/appError';
 import prisma from '../../utils/prisma';
 
-const createCommentIntoDB = async (userId: string, payload: { taskId: string; content: string }) => {
-	// 1. Verify the task exists
-	const task = await prisma.task.findUnique({
-		where: { id: payload.taskId },
-	});
+// Add this to your task.service.ts
+const addCommentToTask = async (taskId: string, userId: string, content: string) => {
+	// Verify task exists
+	const task = await prisma.task.findUnique({ where: { id: taskId } });
+	if (!task) throw new AppError(404, 'Task not found');
 
-	if (!task) {
-		throw new AppError(404, 'Task not found');
-	}
-
-	// 2. Create the comment using the authenticated user's ID
-	const result = await prisma.comment.create({
+	// Create the comment
+	const comment = await prisma.comment.create({
 		data: {
-			content: payload.content,
-			taskId: payload.taskId,
+			content,
+			taskId,
 			authorId: userId,
 		},
+		// Include the user so the frontend immediately gets their name for the UI
 		include: {
 			author: {
-				select: {
-					id: true,
-					name: true,
-					role: true, // Helpful for the UI to show "Admin" badges next to comments
-				},
+				select: { id: true, name: true },
 			},
 		},
 	});
 
-	return result;
+	return comment;
 };
 
 const getTaskCommentsFromDB = async (taskId: string) => {
@@ -47,6 +40,6 @@ const getTaskCommentsFromDB = async (taskId: string) => {
 };
 
 export const CommentServices = {
-	createCommentIntoDB,
+	addCommentToTask,
 	getTaskCommentsFromDB,
 };

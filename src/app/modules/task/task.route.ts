@@ -36,4 +36,8 @@ router.post(
 	TaskControllers.logTime,
 );
 
+router.get('/:id/time', auth(), TaskControllers.getTimeLogs);
+
+router.get('/:id', TaskControllers.getSingleTask);
+
 export const TaskRoutes = router;
