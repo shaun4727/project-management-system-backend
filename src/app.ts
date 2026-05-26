@@ -14,10 +14,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
 	cors({
-		origin: [
-			'http://localhost:3000',
-			'https://your-frontend-project.vercel.app', // Add your exact Vercel URL here
-		],
+		origin: ['http://localhost:3000', 'https://project-management-system-frontend-gilt.vercel.app/'],
 		credentials: true,
 	}),
 );
